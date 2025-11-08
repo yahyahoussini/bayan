@@ -1,0 +1,390 @@
+import { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useCart } from '@/contexts/CartContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import { useSettings } from '@/hooks/useSettings';
+import { phoneSchema, nameSchema, addressSchema, sanitizeInput } from '@/lib/validation';
+import { logger } from '@/lib/logger';
+import { z } from 'zod';
+
+interface CheckoutModalProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+export function CheckoutModal({ open, onClose }: CheckoutModalProps) {
+  const { items, subtotal, clearCart } = useCart();
+  const navigate = useNavigate();
+  const { settings } = useSettings();
+  const [loading, setLoading] = useState(false);
+  const [shippingCities, setShippingCities] = useState<any[]>([]);
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    city: '',
+    address: '',
+    couponCode: '',
+  });
+  const [discount, setDiscount] = useState(0);
+  const [couponApplied, setCouponApplied] = useState(false);
+
+  useEffect(() => {
+    fetchShippingCities();
+  }, []);
+
+  const fetchShippingCities = async () => {
+    const { data } = await supabase
+      .from('shipping_costs')
+      .select('*')
+      .eq('is_active', true)
+      .order('city_name');
+    
+    setShippingCities(data || []);
+  };
+
+  // Calculate shipping cost based on product-specific costs or city costs
+  const calculateShippingCost = () => {
+    if (!formData.city) return 0;
+    if (subtotal >= settings.free_shipping_threshold) return 0; // Free shipping threshold from settings
+    
+    // Check if any product has specific shipping cost
+    const productShippingCosts = items
+      .filter(item => item.shipping_cost && item.shipping_cost > 0)
+      .map(item => item.shipping_cost || 0);
+    
+    if (productShippingCosts.length > 0) {
+      // Use the maximum product shipping cost
+      return Math.max(...productShippingCosts);
+    }
+    
+    // Use city-based shipping cost from database
+    const city = shippingCities.find(c => c.city_name === formData.city);
+    return city?.shipping_cost || 50;
+  };
+
+  const shippingCost = calculateShippingCost();
+  const total = subtotal + shippingCost - discount;
+
+  const applyCoupon = async () => {
+    if (!formData.couponCode) return;
+
+    const { data: coupon, error } = await supabase
+      .from('coupons')
+      .select('*')
+      .eq('code', formData.couponCode.toUpperCase())
+      .eq('is_active', true)
+      .single();
+
+    if (error || !coupon) {
+      toast.error('❌ Code promo invalide ou expiré');
+      return;
+    }
+
+    if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
+      toast.error('❌ Code promo expiré');
+      return;
+    }
+
+    if (coupon.max_uses && coupon.used_count >= coupon.max_uses) {
+      toast.error('❌ Ce code promo a atteint sa limite d\'utilisation');
+      return;
+    }
+
+    if (subtotal < coupon.min_order_amount) {
+      toast.error(`⚠️ Commande minimale: ${coupon.min_order_amount} MAD`);
+      return;
+    }
+
+    const discountAmount = coupon.discount_type === 'percentage'
+      ? (subtotal * coupon.discount_value) / 100
+      : coupon.discount_value;
+
+    setDiscount(discountAmount);
+    setCouponApplied(true);
+    toast.success(`✓ Code promo appliqué : -${discountAmount} MAD`);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate inputs with Zod schemas
+    try {
+      const validatedName = nameSchema.parse(sanitizeInput(formData.name));
+      const validatedPhone = phoneSchema.parse(formData.phone);
+      const validatedAddress = addressSchema.parse(sanitizeInput(formData.address));
+      
+      if (!formData.city) {
+        toast.error('Veuillez sélectionner une ville');
+        return;
+      }
+
+      setLoading(true);
+
+      // Step 1: Check and reserve stock atomically for all items
+      // Note: This requires the decrement_stock database function to be created
+      // For now, we'll use the existing check, but recommend implementing the atomic function
+      const stockResults = await Promise.all(
+        items.map(async (item) => {
+          const { data: product, error: productError } = await supabase
+            .from('products')
+            .select('stock_quantity, name')
+            .eq('id', item.id)
+            .single();
+
+          if (productError) {
+            logger.error('Error checking stock', productError, { productId: item.id });
+            return { success: false, item, error: productError };
+          }
+
+          if (product.stock_quantity < item.quantity) {
+            return { success: false, item, error: new Error(`Stock insuffisant: ${product.stock_quantity} disponible`) };
+          }
+
+          return { success: true, item };
+        })
+      );
+
+      // Check if all stock checks succeeded
+      const failedStock = stockResults.find(r => !r.success);
+      if (failedStock) {
+        const errorMsg = failedStock.error instanceof Error 
+          ? failedStock.error.message 
+          : `Stock insuffisant pour ${failedStock.item.name}`;
+        toast.error(`❌ ${errorMsg}`);
+        setLoading(false);
+        return;
+      }
+
+      const orderNumber = `BC-${Date.now()}`;
+
+      // Step 2: Create the order with validated data
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          order_number: orderNumber,
+          customer_name: validatedName,
+          customer_phone: validatedPhone,
+          customer_city: formData.city,
+          customer_address: validatedAddress,
+          subtotal,
+          shipping_cost: shippingCost,
+          discount_amount: discount,
+          total_amount: total,
+          coupon_code: couponApplied ? formData.couponCode : null,
+          status: 'En attente',
+          payment_method: 'COD',
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // Step 3: Create order items
+      const orderItems = items.map(item => ({
+        order_id: order.id,
+        product_id: item.id,
+        product_name: item.name,
+        product_price: item.price,
+        quantity: item.quantity,
+        subtotal: item.price * item.quantity,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+
+      if (itemsError) throw itemsError;
+
+      // Step 4: Reduce stock quantities for each product
+      for (const item of items) {
+        const { data: currentProduct } = await supabase
+          .from('products')
+          .select('stock_quantity')
+          .eq('id', item.id)
+          .single();
+
+        if (currentProduct) {
+          const newStock = currentProduct.stock_quantity - item.quantity;
+          
+          const { error: stockError } = await supabase
+            .from('products')
+            .update({ stock_quantity: Math.max(0, newStock) })
+            .eq('id', item.id);
+
+          if (stockError) {
+            logger.error('Error updating stock', stockError, { productId: item.id });
+          }
+        }
+      }
+
+      if (couponApplied && formData.couponCode) {
+        const { data: couponData } = await supabase
+          .from('coupons')
+          .select('used_count')
+          .eq('code', formData.couponCode)
+          .single();
+        
+        if (couponData) {
+          await supabase
+            .from('coupons')
+            .update({ used_count: couponData.used_count + 1 })
+            .eq('code', formData.couponCode);
+        }
+      }
+
+      clearCart();
+      toast.success('✓ Commande confirmée !');
+      navigate(`/confirmation/${orderNumber}`);
+      onClose();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      } else {
+        logger.error('Order creation error', error instanceof Error ? error : new Error(String(error)));
+        toast.error('❌ Une erreur est survenue lors de la commande');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-2xl">Finaliser votre commande</DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="bg-muted p-4 rounded-lg space-y-2">
+            <h3 className="font-semibold mb-3">Récapitulatif de commande</h3>
+            {items.map(item => (
+              <div key={item.id} className="flex justify-between text-sm">
+                <span>{item.name} x{item.quantity}</span>
+                <span>{item.price * item.quantity} MAD</span>
+              </div>
+            ))}
+            <div className="border-t pt-2 space-y-1">
+              <div className="flex justify-between text-sm">
+                <span>Sous-total</span>
+                <span>{subtotal} MAD</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Frais de livraison</span>
+                <span className={shippingCost === 0 && subtotal >= settings.free_shipping_threshold ? 'text-success font-semibold' : ''}>
+                  {shippingCost === 0 && subtotal >= settings.free_shipping_threshold ? 'GRATUIT' : `${shippingCost} MAD`}
+                </span>
+              </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-sm text-success">
+                  <span>Réduction</span>
+                  <span>-{discount} MAD</span>
+                </div>
+              )}
+              <div className="flex justify-between text-lg font-bold pt-2 border-t">
+                <span>Total</span>
+                <span>{total} MAD</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="name">Nom Complet *</Label>
+              <Input
+                id="name"
+                placeholder="Ex: Ahmed Bennani"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+                minLength={3}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="phone">Numéro de Téléphone *</Label>
+              <Input
+                id="phone"
+                type="tel"
+                inputMode="numeric"
+                pattern="[0-9]{10}"
+                placeholder="Ex: 0612345678"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="city">Ville *</Label>
+              <Select value={formData.city} onValueChange={(value) => setFormData({ ...formData, city: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionnez votre ville" />
+                </SelectTrigger>
+                <SelectContent>
+                  {shippingCities.map(city => (
+                    <SelectItem key={city.id} value={city.city_name}>
+                      {city.city_name} ({city.shipping_cost} MAD)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="address">Adresse Complète *</Label>
+              <Textarea
+                id="address"
+                rows={3}
+                placeholder="Rue, numéro, quartier, code postal..."
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                required
+                minLength={10}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="coupon">Code Promo (optionnel)</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="coupon"
+                  placeholder="Entrez votre code"
+                  value={formData.couponCode}
+                  onChange={(e) => setFormData({ ...formData, couponCode: e.target.value })}
+                  disabled={couponApplied}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={applyCoupon}
+                  disabled={couponApplied || !formData.couponCode}
+                >
+                  Appliquer
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={loading}>
+            {loading ? 'Traitement...' : `Confirmer la Commande - ${total} MAD`}
+          </Button>
+
+          <div className="bg-muted p-4 rounded-lg text-center space-y-2">
+            <p className="font-semibold">💵 Paiement à la livraison (Cash on Delivery)</p>
+            <p className="text-sm text-muted-foreground">Vous paierez lors de la réception de votre commande</p>
+            <p className="text-sm text-muted-foreground">Livraison en 2-3 jours ouvrables</p>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
