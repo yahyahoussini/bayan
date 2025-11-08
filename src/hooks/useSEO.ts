@@ -14,25 +14,23 @@ interface UseSEOOptions extends SEOData {
 
 export function useSEO(options: UseSEOOptions) {
   const location = useLocation();
-  const canonical = options?.url || generateCanonical(location?.pathname || '/');
-  const ogImage = generateOGImage(options?.image);
-  const fullTitle = options?.title?.includes('Bayan Cosmetic') 
+  const canonical = options.url || generateCanonical(location.pathname);
+  const ogImage = generateOGImage(options.image);
+  const fullTitle = options.title.includes('Bayan Cosmetic') 
     ? options.title 
-    : `${options?.title || 'Bayan Cosmetic'} | Bayan Cosmetic`;
+    : `${options.title} | Bayan Cosmetic`;
 
   useEffect(() => {
     // Update document title
-    if (typeof document !== 'undefined') {
-      document.title = fullTitle;
-    }
+    document.title = fullTitle;
   }, [fullTitle]);
 
   return {
     HelmetSEO: () => (
       <Helmet>
         {/* Basic Meta Tags */}
-        <title>{String(fullTitle)}</title>
-        <meta name="description" content={String(options?.description || '')} />
+        <title>{fullTitle}</title>
+        <meta name="description" content={options.description} />
         {options.keywords && <meta name="keywords" content={options.keywords} />}
         
         {/* Canonical URL */}
@@ -48,8 +46,8 @@ export function useSEO(options: UseSEOOptions) {
         
         {/* Open Graph */}
         <meta property="og:title" content={fullTitle} />
-        <meta property="og:description" content={options?.description || ''} />
-        <meta property="og:type" content={options?.type || 'website'} />
+        <meta property="og:description" content={options.description} />
+        <meta property="og:type" content={options.type || 'website'} />
         <meta property="og:url" content={canonical} />
         <meta property="og:image" content={ogImage} />
         <meta property="og:image:width" content="1200" />
@@ -60,11 +58,11 @@ export function useSEO(options: UseSEOOptions) {
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={fullTitle} />
-        <meta name="twitter:description" content={options?.description || ''} />
+        <meta name="twitter:description" content={options.description} />
         <meta name="twitter:image" content={ogImage} />
         
         {/* Structured Data */}
-        {options?.structuredData && (
+        {options.structuredData && (
           Array.isArray(options.structuredData) 
             ? options.structuredData.map((data, index) => (
                 <script
