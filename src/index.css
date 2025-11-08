@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@400;500;600;700&family=Dancing+Script:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -65,8 +67,6 @@ All colors MUST be HSL.
     color: hsl(var(--foreground));
   }
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@400;500;600;700&family=Dancing+Script:wght@400;700&display=swap');
 
 /* Rich Text Editor Styles */
 .quill {

@@ -31,8 +31,8 @@ export function useSEO(options: UseSEOOptions) {
     HelmetSEO: () => (
       <Helmet>
         {/* Basic Meta Tags */}
-        <title>{fullTitle}</title>
-        <meta name="description" content={options?.description || ''} />
+        <title>{String(fullTitle)}</title>
+        <meta name="description" content={String(options?.description || '')} />
         {options.keywords && <meta name="keywords" content={options.keywords} />}
         
         {/* Canonical URL */}
