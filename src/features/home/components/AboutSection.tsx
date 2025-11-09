@@ -46,6 +46,7 @@ export const AboutSection = () => {
                       src={image2} 
                       alt="Femme appliquant un soin visage"
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
                   </div>
@@ -56,6 +57,7 @@ export const AboutSection = () => {
                       src={image3} 
                       alt="Produits de beauté naturels"
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
                   </div>
@@ -66,6 +68,7 @@ export const AboutSection = () => {
                       src={image4} 
                       alt="Soins luban dakar"
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
                   </div>
@@ -76,6 +79,7 @@ export const AboutSection = () => {
                       src={image5} 
                       alt="Femme souriante avec belle peau"
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
                   </div>
