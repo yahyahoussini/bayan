@@ -18,14 +18,20 @@ export default defineConfig(({ mode }) => ({
   optimizeDeps: {
     include: [
       'react',
+      'react/jsx-dev-runtime',
       'react-dom',
+      'react-dom/client',
       'react-router-dom',
       'react-helmet-async',
       '@tanstack/react-query',
       'sonner',
       'next-themes',
       'lucide-react',
-      '@radix-ui/react-tooltip'
+      '@radix-ui/react-tooltip',
+      '@radix-ui/react-toast',
+      'class-variance-authority',
+      'clsx',
+      'tailwind-merge'
     ],
     esbuildOptions: {
       target: 'esnext'

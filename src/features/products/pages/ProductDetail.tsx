@@ -770,7 +770,6 @@ export default function ProductDetail() {
           Voir les options d'achat
         </Button>
       </div>
-      </div>
     </div>
     </>
   );

@@ -46,3 +46,7 @@ COMMENT ON FUNCTION public.decrement_stock IS 'Atomically decrements product sto
 
 
 
+
+
+
+
