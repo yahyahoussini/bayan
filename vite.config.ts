@@ -68,14 +68,8 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
-    // Enable minification
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: mode === 'production', // Remove console.log in production
-        drop_debugger: true,
-      },
-    },
+    // Enable minification (using esbuild which is faster and included by default)
+    minify: 'esbuild',
     // Chunk size warnings
     chunkSizeWarningLimit: 1000,
     // Source maps for production debugging (optional, can disable for smaller builds)
