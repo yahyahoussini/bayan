@@ -38,36 +38,6 @@ export default defineConfig(({ mode }) => ({
     }
   },
   build: {
-    // Optimize chunk splitting for better caching
-    rollupOptions: {
-      output: {
-        manualChunks: (id) => {
-          // Vendor chunks for better caching
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-              return 'vendor-react';
-            }
-            if (id.includes('@radix-ui')) {
-              return 'vendor-ui';
-            }
-            if (id.includes('@tanstack/react-query')) {
-              return 'vendor-query';
-            }
-            if (id.includes('recharts')) {
-              return 'vendor-charts';
-            }
-            if (id.includes('jspdf')) {
-              return 'vendor-pdf';
-            }
-            if (id.includes('lucide-react')) {
-              return 'vendor-icons';
-            }
-            // Other vendor libraries
-            return 'vendor-misc';
-          }
-        },
-      },
-    },
     // Enable minification (using esbuild which is faster and included by default)
     minify: 'esbuild',
     // Chunk size warnings
