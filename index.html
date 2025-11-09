@@ -50,13 +50,32 @@
     <link rel="dns-prefetch" href="https://*.supabase.co" />
     <link rel="dns-prefetch" href="https://wa.me" />
     
+    <!-- Load Google Fonts asynchronously with error handling -->
+    <script>
+      (function() {
+        const fontLink = document.createElement('link');
+        fontLink.rel = 'stylesheet';
+        fontLink.href = 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@400;500;600;700&family=Dancing+Script:wght@400;700&display=swap';
+        fontLink.media = 'print';
+        fontLink.onload = function() {
+          this.media = 'all';
+        };
+        fontLink.onerror = function() {
+          console.warn('Failed to load Google Fonts, using fallback fonts');
+          this.remove();
+        };
+        document.head.appendChild(fontLink);
+      })();
+    </script>
+    
     <!-- Security Headers -->
     <meta http-equiv="Content-Security-Policy" 
           content="default-src 'self'; 
                    script-src 'self' 'unsafe-inline' 'unsafe-eval'; 
-                   style-src 'self' 'unsafe-inline'; 
+                   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
                    img-src 'self' data: https: blob:; 
-                   font-src 'self' data:; 
+                   font-src 'self' data: https://fonts.gstatic.com; 
+                   media-src 'self' https: blob:; 
                    connect-src 'self' https://*.supabase.co https://ipapi.co https://ip-api.com https://wa.me;">
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta http-equiv="X-XSS-Protection" content="1; mode=block" />

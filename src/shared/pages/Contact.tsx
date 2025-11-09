@@ -6,24 +6,7 @@ import { Textarea } from '@/shared/ui/textarea';
 import { toast } from 'sonner';
 import { useSettings } from '@/shared/hooks/useSettings';
 import { useState } from 'react';
-import { useSEO } from '@/hooks/useSEO';
-import { generateBreadcrumbStructuredData, BASE_URL } from '@/lib/seo';
-
 export default function Contact() {
-  const { HelmetSEO } = useSEO({
-    title: 'Contact - Bayan Cosmetic',
-    description: 'Contactez Bayan Cosmetic pour toute question sur nos produits de beauté naturels marocains. Nous sommes là pour vous aider à trouver les soins adaptés à vos besoins.',
-    keywords: 'contact bayan cosmetic, service client, produits beauté maroc, support client',
-    image: '/assets/logo.png',
-    url: `${BASE_URL}/contact`,
-    type: 'website',
-    structuredData: [
-      generateBreadcrumbStructuredData([
-        { name: 'Accueil', url: '/' },
-        { name: 'Contact', url: '/contact' }
-      ])
-    ]
-  });
   const { settings, loading } = useSettings();
   const [formData, setFormData] = useState({
     name: '',
@@ -69,7 +52,6 @@ export default function Contact() {
 
   return (
     <>
-      <HelmetSEO />
       <div className="min-h-screen py-12 px-4">
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-12">

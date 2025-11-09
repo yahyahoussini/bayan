@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { Button } from '@/shared/ui/button';
@@ -50,8 +50,8 @@ export function CheckoutModal({ open, onClose }: CheckoutModalProps) {
     setShippingCities(data || []);
   };
 
-  // Calculate shipping cost based on product-specific costs or city costs
-  const calculateShippingCost = () => {
+  // Calculate shipping cost based on product-specific costs or city costs (memoized for performance)
+  const shippingCost = useMemo(() => {
     if (!formData.city) return 0;
     if (subtotal >= settings.free_shipping_threshold) return 0; // Free shipping threshold from settings
     
@@ -68,10 +68,9 @@ export function CheckoutModal({ open, onClose }: CheckoutModalProps) {
     // Use city-based shipping cost from database
     const city = shippingCities.find(c => c.city_name === formData.city);
     return city?.shipping_cost || 50;
-  };
+  }, [formData.city, subtotal, items, settings.free_shipping_threshold, shippingCities]);
 
-  const shippingCost = calculateShippingCost();
-  const total = subtotal + shippingCost - discount;
+  const total = useMemo(() => subtotal + shippingCost - discount, [subtotal, shippingCost, discount]);
 
   const applyCoupon = async () => {
     if (!formData.couponCode) return;

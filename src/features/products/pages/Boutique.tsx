@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, Filter, X } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { ProductCard } from '../components/ProductCard';
 import { Input } from '@/shared/ui/input';
 import { Button } from '@/shared/ui/button';
@@ -8,8 +9,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Label } from '@/shared/ui/label';
 import { supabase } from '@/integrations/supabase/client';
-import { useSEO } from '@/hooks/useSEO';
-import { generateBreadcrumbStructuredData, BASE_URL } from '@/lib/seo';
 
 interface Category {
   id: string;
@@ -19,19 +18,46 @@ interface Category {
 
 export default function Boutique() {
   const [searchParams] = useSearchParams();
-  const [products, setProducts] = useState<any[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('none');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [priceRange, setPriceRange] = useState<{ min: string; max: string }>({ min: '', max: '' });
 
+  // Optimized: Use React Query for products with selective column fetching
+  const { data: products = [], isLoading: productsLoading } = useQuery({
+    queryKey: ['products', 'all'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, name, slug, description, price, image_url, stock_quantity, category, badge_type, background_gradient, size')
+        .eq('is_active', true);
+
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Optimized: Use React Query for categories
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories', 'all'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, name, slug')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes - categories change less frequently
+    gcTime: 30 * 60 * 1000, // 30 minutes
+  });
+
   useEffect(() => {
-    fetchProducts();
-    fetchCategories();
-    
     // Check if there's a category parameter in the URL
     const categoryFromUrl = searchParams.get('category');
     if (categoryFromUrl) {
@@ -39,40 +65,8 @@ export default function Boutique() {
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    filterAndSortProducts();
-  }, [products, selectedCategory, sortBy, searchQuery, priceRange]);
-
-  const fetchProducts = async () => {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .eq('is_active', true);
-
-    if (error) {
-      console.error('Error fetching products:', error);
-      return;
-    }
-
-    setProducts(data || []);
-  };
-
-  const fetchCategories = async () => {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('id, name, slug')
-      .eq('is_active', true)
-      .order('display_order', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching categories:', error);
-      return;
-    }
-
-    setCategories(data || []);
-  };
-
-  const filterAndSortProducts = () => {
+  // Optimized: Memoized filtering and sorting
+  const filteredProducts = useMemo(() => {
     let filtered = [...products];
 
     // Search filter
@@ -123,8 +117,8 @@ export default function Boutique() {
     }
     // If sortBy is 'none', no sorting is applied
 
-    setFilteredProducts(filtered);
-  };
+    return filtered;
+  }, [products, selectedCategory, sortBy, searchQuery, priceRange, categories]);
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -135,35 +129,20 @@ export default function Boutique() {
 
   const hasActiveFilters = selectedCategory !== 'all' || sortBy !== 'none' || priceRange.min !== '' || priceRange.max !== '';
 
-  // SEO Configuration
-  const selectedCategoryName = categories.find(c => c.slug === selectedCategory)?.name || '';
-  const pageTitle = selectedCategory && selectedCategory !== 'all'
-    ? `${selectedCategoryName} - Boutique Bayan Cosmetic`
-    : 'Boutique - Produits de beauté naturels marocains | Bayan Cosmetic';
-  
-  const pageDescription = selectedCategory && selectedCategory !== 'all'
-    ? `Découvrez notre collection de ${selectedCategoryName.toLowerCase()} - Produits de beauté naturels marocains de qualité.`
-    : 'Parcourez notre boutique en ligne de produits de beauté naturels marocains. Découvrez notre sélection de soins naturels pour la peau, les cheveux et le corps.';
-
-  const { HelmetSEO } = useSEO({
-    title: pageTitle,
-    description: pageDescription,
-    keywords: `boutique produits beauté, ${selectedCategoryName}, cosmétiques marocains, soins naturels, produits beauté en ligne`,
-    image: '/assets/logo.png',
-    url: `${BASE_URL}/boutique${selectedCategory && selectedCategory !== 'all' ? `?category=${selectedCategory}` : ''}`,
-    type: 'website',
-    structuredData: [
-      generateBreadcrumbStructuredData([
-        { name: 'Accueil', url: '/' },
-        { name: 'Boutique', url: '/boutique' },
-        ...(selectedCategory && selectedCategory !== 'all' ? [{ name: selectedCategoryName, url: `/boutique?category=${selectedCategory}` }] : [])
-      ])
-    ]
-  });
+  // Loading state
+  if (productsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Chargement des produits...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
-      <HelmetSEO />
       <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       <div className="container mx-auto px-4 py-8 md:py-12">
         {/* Header Section */}
@@ -378,7 +357,6 @@ export default function Boutique() {
         </Dialog>
       </div>
       </div>
-    </div>
     </>
   );
 }

@@ -1,6 +1,10 @@
 import { Star, Sparkles, Award, Heart } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { useNavigate } from 'react-router-dom';
+import image2 from '@/assets/2.webp';
+import image3 from '@/assets/3.webp';
+import image4 from '@/assets/4.webp';
+import image5 from '@/assets/5.webp';
 
 export const AboutSection = () => {
   const navigate = useNavigate();
@@ -37,75 +41,43 @@ export const AboutSection = () => {
                 <div className="grid grid-cols-2 gap-4 relative">
                   
                   {/* Top left image */}
-                  <div className="relative rounded-2xl overflow-hidden shadow-lg group">
+                  <div className="relative rounded-2xl overflow-hidden shadow-lg group w-full h-32 md:h-40">
                     <img 
-                      src="/placeholder.svg" 
+                      src={image2} 
                       alt="Femme appliquant un soin visage"
-                      className="w-full h-32 md:h-40 object-cover transition-transform duration-300 group-hover:scale-105"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.background = 'linear-gradient(135deg, #f3e8ff, #ede9fe)';
-                        target.style.display = 'flex';
-                        target.style.alignItems = 'center';
-                        target.style.justifyContent = 'center';
-                        target.alt = 'B';
-                      }}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
                   </div>
                   
                   {/* Top right image */}
-                  <div className="relative rounded-2xl overflow-hidden shadow-lg group mt-8">
+                  <div className="relative rounded-2xl overflow-hidden shadow-lg group mt-8 w-full h-32 md:h-40">
                     <img 
-                      src="/placeholder.svg" 
+                      src={image3} 
                       alt="Produits de beauté naturels"
-                      className="w-full h-32 md:h-40 object-cover transition-transform duration-300 group-hover:scale-105"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.background = 'linear-gradient(135deg, #fef3c7, #fbbf24)';
-                        target.style.display = 'flex';
-                        target.style.alignItems = 'center';
-                        target.style.justifyContent = 'center';
-                        target.alt = 'C';
-                      }}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
                   </div>
                   
                   {/* Bottom left image */}
-                  <div className="relative rounded-2xl overflow-hidden shadow-lg group -mt-4">
+                  <div className="relative rounded-2xl overflow-hidden shadow-lg group -mt-4 w-full h-32 md:h-40">
                     <img 
-                      src="/placeholder.svg" 
+                      src={image4} 
                       alt="Soins luban dakar"
-                      className="w-full h-32 md:h-40 object-cover transition-transform duration-300 group-hover:scale-105"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.background = 'linear-gradient(135deg, #dcfce7, #22c55e)';
-                        target.style.display = 'flex';
-                        target.style.alignItems = 'center';
-                        target.style.justifyContent = 'center';
-                        target.alt = 'L';
-                      }}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
                   </div>
                   
                   {/* Bottom right image */}
-                  <div className="relative rounded-2xl overflow-hidden shadow-lg group">
+                  <div className="relative rounded-2xl overflow-hidden shadow-lg group w-full h-32 md:h-40">
                     <img 
-                      src="/placeholder.svg" 
+                      src={image5} 
                       alt="Femme souriante avec belle peau"
-                      className="w-full h-32 md:h-40 object-cover transition-transform duration-300 group-hover:scale-105"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.background = 'linear-gradient(135deg, #fce7f3, #ec4899)';
-                        target.style.display = 'flex';
-                        target.style.alignItems = 'center';
-                        target.style.justifyContent = 'center';
-                        target.alt = 'M';
-                      }}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
                   </div>
                 </div>
 

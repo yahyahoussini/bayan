@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Star, ShoppingCart, MessageCircle, Minus, Plus } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
@@ -15,12 +15,6 @@ import { toast } from 'sonner';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/shared/ui/carousel';
 import { useSettings } from '@/shared/hooks/useSettings';
 import { sanitizeHtml } from '@/shared/lib/sanitize';
-import { useSEO } from '@/hooks/useSEO';
-import { 
-  generateProductStructuredData, 
-  generateBreadcrumbStructuredData,
-  BASE_URL 
-} from '@/lib/seo';
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -134,20 +128,21 @@ export default function ProductDetail() {
     }
   };
 
-  const calculateFinalPrice = () => {
-    let finalPrice = product?.price || 0;
+  // Memoized price calculation for performance
+  const finalPrice = useMemo(() => {
+    let price = product?.price || 0;
     
     Object.values(selectedVariants).forEach((optionId) => {
       variants.forEach((variant) => {
         const option = variant.options.find((opt: any) => opt.id === optionId);
         if (option && option.price_modifier) {
-          finalPrice += option.price_modifier;
+          price += option.price_modifier;
         }
       });
     });
     
-    return finalPrice;
-  };
+    return price;
+  }, [product?.price, selectedVariants, variants]);
 
   const getSelectedVariantStock = () => {
     // If no variants, return product stock
@@ -188,7 +183,7 @@ export default function ProductDetail() {
       }
     }
 
-    const finalPrice = calculateFinalPrice();
+    // finalPrice is already memoized above
     
     // Build variant name string for cart
     const variantNames: string[] = [];
@@ -230,7 +225,7 @@ export default function ProductDetail() {
       }
     }
 
-    const finalPrice = calculateFinalPrice();
+    // finalPrice is already memoized above
     
     // Build variant name string for cart
     const variantNames: string[] = [];
@@ -257,7 +252,7 @@ export default function ProductDetail() {
   };
 
   const handleWhatsApp = () => {
-    const finalPrice = calculateFinalPrice();
+    // finalPrice is already memoized above
     const variantNames: string[] = [];
     Object.entries(selectedVariants).forEach(([variantId, optionId]) => {
       const variant = variants.find(v => v.id === variantId);
@@ -285,48 +280,6 @@ export default function ProductDetail() {
     ? reviews.reduce((sum, review) => sum + (review.rating || 0), 0) / reviews.length
     : 0;
 
-  // SEO Configuration
-  const productUrl = product ? `${BASE_URL}/produit/${product.slug}` : BASE_URL;
-  const productImages = images.length > 0 
-    ? images.map(img => img.media_url)
-    : product?.image_url 
-      ? [product.image_url]
-      : ['/assets/logo.png'];
-
-  const { HelmetSEO } = useSEO({
-    title: product ? `${product.name} - Bayan Cosmetic` : 'Produit - Bayan Cosmetic',
-    description: product 
-      ? `${product.description || product.long_description || product.name} - Découvrez ce produit de beauté naturel marocain sur Bayan Cosmetic.`
-      : 'Découvrez nos produits de beauté naturels marocains',
-    keywords: product 
-      ? `${product.name}, produits beauté naturels, cosmétiques marocains, ${product.category || ''}, soins naturels`
-      : 'produits beauté naturels, cosmétiques marocains',
-    image: productImages[0],
-    url: productUrl,
-    type: 'product',
-    structuredData: product ? [
-      generateProductStructuredData({
-        name: product.name,
-        description: product.description || product.long_description || product.name,
-        image: productImages,
-        price: product.price,
-        currency: 'MAD',
-        availability: (product.stock_quantity || 0) > 0 ? 'in stock' : 'out of stock',
-        brand: 'Bayan Cosmetic',
-        category: product.category || 'Cosmétiques',
-        sku: product.id,
-        rating: averageRating,
-        reviewCount: reviews.length,
-        url: productUrl
-      }),
-      generateBreadcrumbStructuredData([
-        { name: 'Accueil', url: '/' },
-        { name: 'Boutique', url: '/boutique' },
-        { name: product.name, url: `/produit/${product.slug}` }
-      ])
-    ] : undefined
-  });
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -344,7 +297,6 @@ export default function ProductDetail() {
 
   return (
     <>
-      <HelmetSEO />
       <div className="min-h-screen py-4 lg:py-12 px-4 pb-24 lg:pb-12">
       <div className="container mx-auto max-w-6xl">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12">
@@ -449,8 +401,8 @@ export default function ProductDetail() {
                 <span className="text-xs lg:text-sm text-muted-foreground">({product.rating || 4.5})</span>
               </div>
               <p className="text-3xl lg:text-5xl font-bold mb-2">
-                {calculateFinalPrice().toFixed(2)} MAD
-                {calculateFinalPrice() !== product.price && (
+                {finalPrice.toFixed(2)} MAD
+                {finalPrice !== product.price && (
                   <span className="text-lg lg:text-xl text-muted-foreground line-through ml-2">
                     {product.price} MAD
                   </span>

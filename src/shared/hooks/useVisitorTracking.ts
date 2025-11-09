@@ -194,15 +194,23 @@ export function useVisitorTracking() {
       // Handle different error types
       if (selectError) {
         // Table doesn't exist (404) - check multiple error properties
+        const errorMessage = (selectError.message || '').toLowerCase();
+        const errorCode = selectError.code || '';
+        const errorStatus = (selectError as any).status || (selectError as any).statusCode;
+        
         const is404 = 
-          selectError.code === 'PGRST116' || 
-          selectError.message?.includes('404') ||
-          (selectError as any).status === 404 ||
-          (selectError as any).statusCode === 404;
+          errorCode === 'PGRST116' || 
+          errorCode === '42P01' || // PostgreSQL relation does not exist
+          errorMessage.includes('404') ||
+          errorMessage.includes('not found') ||
+          (errorMessage.includes('relation') && errorMessage.includes('does not exist')) ||
+          errorMessage.includes('could not find') ||
+          errorStatus === 404;
         
         if (is404) {
           tableExistsRef.current = false;
-          return; // Table doesn't exist yet, skip silently
+          // Don't make any more requests if table doesn't exist
+          return;
         }
         
         // Rate limiting (429) - increase delay and skip
@@ -235,14 +243,17 @@ export function useVisitorTracking() {
           .eq('session_id', sessionId);
         
         if (updateError) {
+          const errorMessage = updateError.message?.toLowerCase() || '';
           const is404 = 
             updateError.code === 'PGRST116' || 
-            updateError.message?.includes('404') ||
+            errorMessage.includes('404') ||
+            errorMessage.includes('not found') ||
+            errorMessage.includes('relation') && errorMessage.includes('does not exist') ||
             (updateError as any).status === 404 ||
             (updateError as any).statusCode === 404;
           
           const is429 = 
-            updateError.message?.includes('429') || 
+            errorMessage.includes('429') || 
             updateError.code === '429' ||
             (updateError as any).status === 429 ||
             (updateError as any).statusCode === 429;
@@ -280,14 +291,17 @@ export function useVisitorTracking() {
           });
         
         if (insertError) {
+          const errorMessage = insertError.message?.toLowerCase() || '';
           const is404 = 
             insertError.code === 'PGRST116' || 
-            insertError.message?.includes('404') ||
+            errorMessage.includes('404') ||
+            errorMessage.includes('not found') ||
+            errorMessage.includes('relation') && errorMessage.includes('does not exist') ||
             (insertError as any).status === 404 ||
             (insertError as any).statusCode === 404;
           
           const is429 = 
-            insertError.message?.includes('429') || 
+            errorMessage.includes('429') || 
             insertError.code === '429' ||
             (insertError as any).status === 429 ||
             (insertError as any).statusCode === 429;
@@ -305,12 +319,14 @@ export function useVisitorTracking() {
     } catch (error) {
       // Silently handle errors (table might not exist yet, rate limiting, etc.)
       if (error instanceof Error) {
-        const errorMessage = error.message || '';
+        const errorMessage = (error.message || '').toLowerCase();
         const errorStatus = (error as any).status || (error as any).statusCode;
         
         const is404 = 
           errorMessage.includes('404') || 
-          errorMessage.includes('PGRST116') ||
+          errorMessage.includes('pgrst116') ||
+          errorMessage.includes('not found') ||
+          errorMessage.includes('relation') && errorMessage.includes('does not exist') ||
           errorStatus === 404;
         
         const is429 = 
@@ -319,6 +335,8 @@ export function useVisitorTracking() {
         
         if (is404) {
           tableExistsRef.current = false;
+          // Stop all tracking if table doesn't exist
+          return;
         } else if (is429) {
           requestDelayRef.current = Math.min(requestDelayRef.current * 2, 300000);
         } else if (!is404 && !is429) {

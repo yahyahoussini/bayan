@@ -8,13 +8,8 @@ import { TestimonialsSection } from '../components/TestimonialsSection';
 import { supabase } from '@/integrations/supabase/client';
 import pinkRose from '@/assets/pink-rose.webp';
 import topBg from '@/assets/top-bg.webp';
+import gelHomepage from '@/assets/gel-homepage.webp';
 import { sanitizeHtml } from '@/shared/lib/sanitize';
-import { useSEO } from '@/hooks/useSEO';
-import { 
-  generateOrganizationStructuredData, 
-  generateWebSiteStructuredData,
-  BASE_URL 
-} from '@/lib/seo';
 
 export default function Index() {
   const navigate = useNavigate();
@@ -120,35 +115,8 @@ export default function Index() {
     ]);
   };
 
-  // SEO Configuration
-  const { HelmetSEO } = useSEO({
-    title: 'Bayan Cosmetic - Produits de beauté naturels marocains',
-    description: 'Découvrez notre gamme complète de produits de beauté naturels marocains. Soins naturels pour la peau, les cheveux et le corps avec des ingrédients authentiques comme l\'huile d\'argan et le luban dakar.',
-    keywords: 'produits beauté naturels, cosmétiques marocains, soins naturels, huile argan, luban dakar, beauté bio, cosmétiques bio maroc, soins visage naturels, soins cheveux naturels',
-    image: '/assets/logo.png',
-    url: BASE_URL,
-    type: 'website',
-    structuredData: [
-      generateOrganizationStructuredData({
-        name: 'Bayan Cosmetic',
-        url: BASE_URL,
-        description: 'Boutique en ligne de produits de beauté naturels marocains',
-        sameAs: []
-      }),
-      generateWebSiteStructuredData({
-        name: 'Bayan Cosmetic',
-        url: BASE_URL,
-        potentialAction: {
-          target: `${BASE_URL}/boutique?q={search_term_string}`,
-          queryInput: 'required name=search_term_string'
-        }
-      })
-    ]
-  });
-
   return (
     <>
-      <HelmetSEO />
       <div className="min-h-screen">
       {/* Hero Section with Background Image */}
       <section className="relative py-32 md:py-40 px-4 text-center overflow-hidden">
@@ -341,22 +309,12 @@ export default function Index() {
                 </div>
                 
                 {/* Main Product Image */}
-                <div className="relative z-20">
-                  {featuredProduct?.image_url ? (
-                    <img 
-                      src={featuredProduct.image_url} 
-                      alt={featuredProduct.name}
-                      className="w-48 h-64 md:w-64 md:h-80 object-contain rounded-lg shadow-2xl"
-                    />
-                  ) : (
-                    <div className="w-48 h-64 md:w-64 md:h-80 bg-gradient-to-b from-[#d4a574] to-[#8b6f47] rounded-lg shadow-2xl flex items-center justify-center">
-                      <div className="text-center p-6">
-                        <div className="w-32 h-40 md:w-44 md:h-56 bg-white/20 rounded-lg mb-4 flex items-center justify-center">
-                          <span className="text-white/80 text-xs md:text-sm font-semibold">Produit</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                <div className="relative z-20 w-48 h-64 md:w-64 md:h-80 overflow-hidden rounded-lg shadow-2xl">
+                  <img 
+                    src={gelHomepage} 
+                    alt={featuredProduct?.name || 'Gel Nettoyant Éclaircissant'}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 
                 {/* Decorative Stones */}

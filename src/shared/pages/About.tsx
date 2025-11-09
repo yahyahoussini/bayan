@@ -2,26 +2,8 @@ import { Leaf, Heart, Award, Sparkles, Star, Shield, Droplets, Flower2 } from 'l
 import { Card, CardContent } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { useSEO } from '@/hooks/useSEO';
-import { generateBreadcrumbStructuredData, BASE_URL } from '@/lib/seo';
-
 export default function About() {
   const navigate = useNavigate();
-
-  const { HelmetSEO } = useSEO({
-    title: 'À Propos - Bayan Cosmetic',
-    description: 'Découvrez l\'histoire de Bayan Cosmetic, votre spécialiste en produits de beauté naturels marocains. Nous proposons des soins authentiques à base d\'ingrédients naturels comme le luban dakar et l\'huile d\'argan.',
-    keywords: 'à propos bayan cosmetic, histoire marque, produits beauté naturels maroc, valeurs entreprise',
-    image: '/assets/logo.png',
-    url: `${BASE_URL}/a-propos`,
-    type: 'website',
-    structuredData: [
-      generateBreadcrumbStructuredData([
-        { name: 'Accueil', url: '/' },
-        { name: 'À Propos', url: '/a-propos' }
-      ])
-    ]
-  });
 
   const values = [
     {
@@ -67,7 +49,6 @@ export default function About() {
 
   return (
     <>
-      <HelmetSEO />
       <div className="min-h-screen bg-gradient-to-b from-background via-card to-background">
       {/* Hero Section */}
       <section className="relative py-20 md:py-32 px-4 overflow-hidden">

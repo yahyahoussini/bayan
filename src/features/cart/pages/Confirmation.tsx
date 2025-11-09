@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CheckCircle, MessageCircle, Download } from 'lucide-react';
+import { CheckCircle, MessageCircle, Download, Copy, Check } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -11,6 +12,7 @@ export default function Confirmation() {
   const navigate = useNavigate();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetchOrder();
@@ -36,6 +38,34 @@ export default function Confirmation() {
   const handleWhatsApp = () => {
     const message = encodeURIComponent(`Bonjour, j'ai passé la commande ${orderNumber}. J'aimerais avoir plus d'informations.`);
     window.open(`https://wa.me/212600000000?text=${message}`, '_blank');
+  };
+
+  const handleCopyOrderNumber = async () => {
+    if (!order?.order_number) return;
+    
+    try {
+      await navigator.clipboard.writeText(order.order_number);
+      setCopied(true);
+      toast.success('Numéro de commande copié !');
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = order.order_number;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setCopied(true);
+        toast.success('Numéro de commande copié !');
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        toast.error('Impossible de copier le numéro de commande');
+      }
+      document.body.removeChild(textArea);
+    }
   };
 
   const handleDownloadPDF = () => {
@@ -106,7 +136,22 @@ export default function Confirmation() {
             <CheckCircle className="w-16 h-16 text-success" />
           </div>
           <h1 className="text-4xl font-bold mb-4">Commande Confirmée ! ✓</h1>
-          <p className="text-xl text-muted-foreground mb-2">Numéro de commande: {order.order_number}</p>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <p className="text-xl text-muted-foreground">Numéro de commande: <span className="font-semibold text-foreground">{order.order_number}</span></p>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleCopyOrderNumber}
+              className="h-8 w-8 hover:bg-primary/10"
+              title="Copier le numéro de commande"
+            >
+              {copied ? (
+                <Check className="h-4 w-4 text-success" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
           <p className="text-lg">Merci {order.customer_name} ! Votre commande a été enregistrée.</p>
         </div>
 

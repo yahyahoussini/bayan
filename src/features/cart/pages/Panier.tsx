@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2, ShoppingBag } from 'lucide-react';
+import { Trash2, ShoppingBag, ShoppingCart } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { useCart } from '../contexts/CartContext';
 import { useNavigate } from 'react-router-dom';
@@ -15,13 +15,21 @@ export default function Panier() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <ShoppingBag className="w-24 h-24 text-muted mb-6" />
-        <h1 className="text-3xl font-bold mb-4">Votre panier est vide</h1>
-        <p className="text-muted-foreground mb-8">Découvrez nos produits de beauté naturels</p>
-        <Button size="lg" onClick={() => navigate('/boutique')}>
-          Continuer vos achats
-        </Button>
+      <div className="min-h-screen flex flex-col">
+        {/* Panier Icon at Top */}
+        <div className="w-full py-8 px-4 flex justify-center">
+          <ShoppingCart className="w-16 h-16 text-muted" />
+        </div>
+        
+        {/* Centered Content */}
+        <div className="flex-1 flex flex-col items-center justify-center p-4">
+          <ShoppingBag className="w-24 h-24 text-muted mb-6" />
+          <h1 className="text-3xl font-bold mb-4">Votre panier est vide</h1>
+          <p className="text-muted-foreground mb-8">Découvrez nos produits de beauté naturels</p>
+          <Button size="lg" onClick={() => navigate('/boutique')}>
+            Continuer vos achats
+          </Button>
+        </div>
       </div>
     );
   }
