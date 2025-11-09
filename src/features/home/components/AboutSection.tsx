@@ -1,10 +1,10 @@
 import { Star, Sparkles, Award, Heart } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { useNavigate } from 'react-router-dom';
-import image2 from '@/assets/2.webp';
-import image3 from '@/assets/3.webp';
-import image4 from '@/assets/4.webp';
-import image5 from '@/assets/5.webp';
+import image2 from '@/assets/optimized/2.webp';
+import image3 from '@/assets/optimized/3.webp';
+import image4 from '@/assets/optimized/4.webp';
+import image5 from '@/assets/optimized/5.webp';
 
 export const AboutSection = () => {
   const navigate = useNavigate();

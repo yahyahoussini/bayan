@@ -6,7 +6,7 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "::",
+    host: "127.0.0.1",
     port: 8080,
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
@@ -38,41 +38,11 @@ export default defineConfig(({ mode }) => ({
     }
   },
   build: {
-    // Optimize chunk splitting for better caching
-    rollupOptions: {
-      output: {
-        manualChunks: (id) => {
-          // Vendor chunks for better caching
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-              return 'vendor-react';
-            }
-            if (id.includes('@radix-ui')) {
-              return 'vendor-ui';
-            }
-            if (id.includes('@tanstack/react-query')) {
-              return 'vendor-query';
-            }
-            if (id.includes('recharts')) {
-              return 'vendor-charts';
-            }
-            if (id.includes('jspdf')) {
-              return 'vendor-pdf';
-            }
-            if (id.includes('lucide-react')) {
-              return 'vendor-icons';
-            }
-            // Other vendor libraries
-            return 'vendor-misc';
-          }
-        },
-      },
-    },
     // Enable minification (using esbuild which is faster and included by default)
     minify: 'esbuild',
     // Chunk size warnings
     chunkSizeWarningLimit: 1000,
     // Source maps for production debugging (optional, can disable for smaller builds)
-    sourcemap: false,
+    sourcemap: true,
   },
 }));

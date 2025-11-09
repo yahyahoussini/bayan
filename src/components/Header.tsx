@@ -4,7 +4,7 @@ import { ShoppingCart, Menu, X, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/contexts/CartContext';
-import logo from '@/assets/logo.png';
+import logo from '@/assets/optimized/logo.webp';
 
 export function Header() {
   const { itemCount } = useCart();

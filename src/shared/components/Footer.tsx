@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Mail, Phone, Instagram, Facebook } from 'lucide-react';
 import { Input } from '@/shared/ui/input';
 import { Button } from '@/shared/ui/button';
-import logo from '@/assets/logo.png';
+import logo from '@/assets/optimized/logo.webp';
 import { useSettings } from '@/shared/hooks/useSettings';
 
 const TikTokIcon = () => (
@@ -19,7 +19,7 @@ export function Footer() {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           <div>
-            <img src={logo} alt="Bayan Cosmetic" className="h-16 mb-4" />
+            <img src={logo} alt="Bayan Cosmetic" className="h-16 mb-4" width="500" height="500" />
             <p className="text-sm text-muted-foreground">
               Beauté naturelle marocaine depuis 2024
             </p>

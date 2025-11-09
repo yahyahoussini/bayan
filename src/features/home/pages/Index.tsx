@@ -6,9 +6,9 @@ import { ProductCard, CategoriesSection } from '@/features/products';
 import { AboutSection } from '../components/AboutSection';
 import { TestimonialsSection } from '../components/TestimonialsSection';
 import { supabase } from '@/integrations/supabase/client';
-import pinkRose from '@/assets/pink-rose.webp';
-import topBg from '@/assets/top-bg.webp';
-import gelHomepage from '@/assets/gel-homepage.webp';
+import pinkRose from '@/assets/optimized/pink-rose.webp';
+import topBg from '@/assets/optimized/top-bg.webp';
+import gelHomepage from '@/assets/optimized/gel-homepage.webp';
 import { sanitizeHtml } from '@/shared/lib/sanitize';
 
 export default function Index() {
@@ -314,6 +314,7 @@ export default function Index() {
                     src={gelHomepage} 
                     alt={featuredProduct?.name || 'Gel Nettoyant Éclaircissant'}
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                 </div>
                 

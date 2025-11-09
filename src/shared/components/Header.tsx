@@ -4,7 +4,7 @@ import { ShoppingCart, Menu, X, Search } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
 import { useCart } from '@/features/cart';
-import logo from '@/assets/logo.png';
+import logo from '@/assets/optimized/logo.webp';
 
 export function Header() {
   const { itemCount } = useCart();
@@ -40,6 +40,8 @@ export function Header() {
               <img
                 src={logo}
                 alt="Bayan Cosmetic"
+                width="500"
+                height="500"
                 className={`object-contain transition-all duration-300 ${
                   isScrolled ? 'h-12' : 'h-16'
                 }`}
