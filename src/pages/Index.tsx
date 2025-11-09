@@ -7,8 +7,8 @@ import { CategoriesSection } from '@/components/CategoriesSection';
 import { AboutSection } from '@/components/AboutSection';
 import { TestimonialsSection } from '@/components/TestimonialsSection';
 import { supabase } from '@/integrations/supabase/client';
-import pinkRose from '@/assets/pink-rose.webp';
-import topBg from '@/assets/top-bg.webp';
+import pinkRose from '@/assets/optimized/pink-rose.webp';
+import topBg from '@/assets/optimized/top-bg.webp';
 import { sanitizeHtml } from '@/lib/sanitize';
 
 export default function Index() {

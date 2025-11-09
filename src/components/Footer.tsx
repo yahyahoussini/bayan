@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Mail, Phone, Instagram, Facebook } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import logo from '@/assets/logo.png';
+import logo from '@/assets/optimized/logo.webp';
 import { useSettings } from '@/hooks/useSettings';
 
 const TikTokIcon = () => (

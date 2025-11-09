@@ -14,7 +14,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import logo from '@/assets/logo.png';
+import logo from '@/assets/optimized/logo.webp';
 
 const AdminOrders = () => {
   const { toast } = useToast();
